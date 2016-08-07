@@ -1,3 +1,6 @@
 [submodule "pgoapi"]
 	path = scanner/pgoapi
 	url = https://github.com/tejado/pgoapi.git
+[submodule "scanner/pgoapi"]
+	path = scanner/pgoapi
+	url = https://github.com/keyphact/pgoapi.git
