@@ -20,6 +20,7 @@ object main extends App {
 
     it.forEachRemaining(new java.util.function.Consumer[MessageAndMetadata[Array[Byte], Array[Byte]]] {
       override def accept(m: MessageAndMetadata[Array[Byte], Array[Byte]]): Unit = {
+
         println(s"${System.currentTimeMillis()}: ${new String(m.key())}=${new String(m.message())}")
       }
     })
