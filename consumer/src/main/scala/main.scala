@@ -6,7 +6,7 @@ object main extends App {
 
   def getConfig = {
     val properties = new Properties()
-    properties.put("zookeeper.connect", "localhost:2181")
+    properties.put("bootstrap.servers", "kafka:9092")
     properties.put("group.id", "pogo_consumer")
     properties.put("auto.offset.reset", "largest")
     properties.put("zookeeper.session.timeout.ms", "400")

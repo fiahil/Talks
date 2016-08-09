@@ -7,7 +7,7 @@ import time
 dragons = [b'fire', b'earth', b'dabajabazza']
 
 print('connecting to kafka')
-p = Producer(bootstrap_servers='localhost')
+p = Producer(bootstrap_servers='kafka')
 print('connected to kafka')
 i = 0
 while True:
