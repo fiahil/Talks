@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from kafka import KafkaProducer as Producer
 
 from datetime import datetime
+from datetime import timedelta
 import time
 import json
 import random
@@ -27,10 +28,10 @@ while True:
         'id': pokemon[0],
         'name': pokemon[1],
         'geo': {
-            'lat': round(random.uniform(48.8374235, 48.9045735), 6),
-            'lon': round(random.uniform(2.2464643, 2.4028253), 6)
+            'lat': round(random.uniform(48.8191955, 48.9045735), 6),
+            'lon': round(random.uniform(2.2403523, 2.4028253), 6)
         },
-        'expireAt': datetime.now().isoformat()
+        'expireAt': (datetime.now() + timedelta(minutes=5)).isoformat()
     }
     p.send('pokemons', key=pokemon[0], value=message)
     p.flush()
