@@ -4,6 +4,7 @@ services:
     image: spotify/kafka
     ports:
      - "9092:9092"
+     - "2181:2181"
     environment:
       ADVERTISED_HOST: kafka
       ADVERTISED_PORT: 9092
@@ -15,9 +16,7 @@ services:
     links:
      - kafka
   consumer:
-    build: ./scanner
-    command: sh -c "./wait-for-it.sh -s kafka:9092 -- python app2.py"
-    volumes:
-     - ./scanner:/src
+    build: ./consumer
+    command: sh -c "./wait-for-it.sh -s kafka:9092 -- sbt run"
     links:
      - kafka

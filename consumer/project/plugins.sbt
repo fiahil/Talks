@@ -1,1 +1,1 @@
-addSbtPlugin("se.marcuslonnberg" % "sbt-docker" % "1.4.0")
+addSbtPlugin("io.spray" % "sbt-revolver" % "0.7.2")

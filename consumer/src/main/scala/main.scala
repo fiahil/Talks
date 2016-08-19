@@ -1,14 +1,22 @@
 import java.util.Properties
-import kafka.consumer.{Consumer, ConsumerConfig, KafkaStream}
+import ES.IndexInto
+import Pokemon.Pokemon
+import Web.Server
+import kafka.consumer.{KafkaStream, Consumer, ConsumerConfig}
 import kafka.message.MessageAndMetadata
+import kafka.utils.Logging
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-object main extends App {
+
+object main extends App with Logging {
 
   def getConfig = {
     val properties = new Properties()
-    properties.put("bootstrap.servers", "kafka:9092")
+    properties.put("bootstrap.servers", "localhost:9092")
     properties.put("group.id", "pogo_consumer")
     properties.put("auto.offset.reset", "largest")
+    properties.put("zookeeper.connect", "localhost:2181")
     properties.put("zookeeper.session.timeout.ms", "400")
     properties.put("zookeeper.sync.time.ms", "200")
     properties.put("auto.commit.interval.ms", "500")
@@ -21,13 +29,21 @@ object main extends App {
     it.forEachRemaining(new java.util.function.Consumer[MessageAndMetadata[Array[Byte], Array[Byte]]] {
       override def accept(m: MessageAndMetadata[Array[Byte], Array[Byte]]): Unit = {
 
-        println(s"${System.currentTimeMillis()}: ${new String(m.key())}=${new String(m.message())}")
+        Pokemon.fromMessage(m.message()).foreach { pk =>
+          println(pk)
+          IndexInto.pokemon(pk)
+        }
       }
     })
   }
 
-  val consumer = Consumer.create(getConfig)
-  val streams = consumer.createMessageStreams(Map("dragons" -> 1))
+  println("Starting consumer")
 
-  streams.get("dragons").get.foreach(displayMessage)
+  val consumer = Consumer.create(getConfig)
+  val streams = consumer.createMessageStreams(Map("pokemons" -> 1))
+  Future { streams.get("pokemons").get.foreach(displayMessage) }
+
+  println("Consumer started")
+
+  Server.start
 }
