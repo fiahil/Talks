@@ -10,21 +10,32 @@ import random
 import base64
 import logging
 
-logging.basicConfig(format='%(asctime)s [%(levelname)8s] %(message)s',
-                    level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s [%(levelname)8s] %(message)s', level=logging.DEBUG)
 log = logging.getLogger('Scanner')
 
 CYCLE_SPEED = 0.5
 
 
-def get_random_point():
+def get_random_point(ref=None, step=0):
+    if ref:
+        return (
+            round(random.uniform(ref[0] - step, ref[0] + step), 6),
+            round(random.uniform(ref[1] - step, ref[1] + step), 6),
+        )
     return (
         round(random.uniform(48.8438105, 48.8883955), 6),
         round(random.uniform(2.2635173, 2.3857733), 6)
     )
 
 class Spawnpoint(namedtuple('Spawnpoint', ['pokemon_ids', 'ttl', 'frequency'])):
-    pass
+    def cycle(self, ref, i):
+        if i % self.frequency == 0:
+            # Create a new pokemon around the spawnpoint
+            log.debug('spawning pokemons')
+            pos = get_random_point(ref, 0.0001)
+            id = random.choice(list(self.pokemon_ids))
+            log.debug('Spawning {} at {}'.format(id, pos))
+            return (id, pos)
 
 class Spawner:
     def __init__(self):
@@ -63,7 +74,7 @@ class Spawner:
     def activated(self):
         """List all active spawnpoints
         """
-        return [s for p, s in self.spawnpoints.items() if s.ttl > 0]
+        return [(p, s) for p, s in self.spawnpoints.items() if s.ttl > 0]
 
 def scan():
     global encounters
@@ -86,28 +97,34 @@ def scan():
         'expireAt': (datetime.now() + timedelta(minutes=cycle_size, seconds=10)).isoformat(),
     }
 
+log.info('connecting to kafka')
+kafka = Producer(bootstrap_servers='0.0.0.0',
+                 key_serializer=lambda x: str(x).encode(),
+                 value_serializer=json.dumps)
+log.info('connected to kafka')
+
 spawner = Spawner()
 i = 0
+
 while True:
     log.info('> {}'.format(i))
     spawner.cycle()
     log.debug('# activated spawners:')
-    for s in spawner.activated():
+    for p, s in spawner.activated():
         log.debug('## {}'.format(s))
+        p = s.cycle(p, i)
+        if p:
+            p = {
+                'encounterId': 'test',
+                'id': p[0],
+                'geo': {
+                    'lat': p[1][0],
+                    'lon': p[1][1]
+                },
+                'expireAt': (datetime.now() + timedelta(minutes=5)).isoformat(),
+            }
+            kafka.send('pokemons', key='test', value=p)
+            kafka.flush()
     log.debug('# timer until new spawnpoint: {}'.format(spawner.timer))
-    #scan()
-    time.sleep(0.5)
+    time.sleep(CYCLE_SPEED)
     i += 1
-
-print('connecting to kafka')
-p = Producer(bootstrap_servers='0.0.0.0',
-             key_serializer=lambda x: str(x).encode(),
-             value_serializer=json.dumps)
-print('connected to kafka')
-while True:
-    pokemon = scan()
-    print('sending {}'.format(pokemon))
-    p.send('pokemons', key=pokemon['encounterId'], value=pokemon)
-    p.flush()
-    time.sleep(0.5)
-print('The End.')
