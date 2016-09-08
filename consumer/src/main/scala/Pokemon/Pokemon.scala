@@ -3,14 +3,13 @@ package Pokemon
 import com.sksamuel.elastic4s.source.Indexable
 import com.sksamuel.elastic4s.{HitAs, RichSearchHit}
 import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 
 case class Pokemon(id: Int,
                    geo: LatLon,
-                   name: Option[String],
+                   encounterId: String,
                    expireAt: String) {
 
   val expireUTC = DateTime.parse(expireAt)
@@ -22,7 +21,7 @@ object Pokemon {
   implicit val pokemonFormat: Format[Pokemon] = (
                                                   (__ \ 'id).format[Int] and
                                                   (__ \ 'geo).format[LatLon] and
-                                                  (__ \ 'name).formatNullable[String] and
+                                                  (__ \ 'encounterId).format[String] and
                                                   (__ \ 'expireAt).format[String]
                                                   )(Pokemon.apply, unlift(Pokemon.unapply))
 
@@ -30,6 +29,7 @@ object Pokemon {
     Json.parse(message).validate[Pokemon].asOpt
   }
 
+  // ES Search results to case class
   implicit object PokemonHitAs extends HitAs[Pokemon] {
 
     override def as(hit: RichSearchHit): Pokemon = {
@@ -37,8 +37,10 @@ object Pokemon {
     }
   }
 
+  // case class to ES Search results
   implicit object PokemonJson extends Indexable[Pokemon] {
 
     override def json(t: Pokemon): String = Json.stringify(Json.toJson(t))
   }
+
 }

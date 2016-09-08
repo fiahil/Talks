@@ -2,10 +2,11 @@ package Kafka
 
 import java.util.Properties
 
+import akka.actor.ActorSystem
 import kafka.consumer.{Consumer, ConsumerConfig}
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object KafkaClient {
 
@@ -21,13 +22,15 @@ object KafkaClient {
     new ConsumerConfig(properties)
   }
 
+  val system = ActorSystem("es-sharpshooter")
+
   def start = {
     val consumer = Consumer.create(config)
     val streams = consumer.createMessageStreams(Map("pokemons" -> 1))
 
     // Start the consumer asynchronously
     Future {
-      streams.get("pokemons").get.foreach(Message.display)
+      streams.get("pokemons").get.foreach(Message.display(system))
     }
   }
 }

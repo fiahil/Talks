@@ -1,15 +1,19 @@
 package Kafka
 
-import ES.IndexInto
+import java.util.concurrent.TimeUnit
+
 import Pokemon.Pokemon
+import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.util.Timeout
 import kafka.consumer.KafkaStream
 import kafka.message.MessageAndMetadata
 
 import scala.concurrent.ExecutionContext
+import scala.util.{Failure, Success}
 
 object Message {
 
-  def display(stream: KafkaStream[Array[Byte], Array[Byte]])(implicit ec: ExecutionContext) = {
+  def display(system: ActorSystem)(stream: KafkaStream[Array[Byte], Array[Byte]])(implicit ec: ExecutionContext) = {
     val it = stream.iterator()
 
     it.forEachRemaining(new java.util.function.Consumer[MessageAndMetadata[Array[Byte], Array[Byte]]] {
@@ -17,7 +21,12 @@ object Message {
 
         Pokemon.fromMessage(m.message()).foreach { pk =>
           println(pk)
-          IndexInto.pokemon(pk)
+          implicit val timeout = Timeout(1, TimeUnit.SECONDS)
+          // Fail to fetch actor
+          system.actorSelection("/user/" + pk.encounterId).resolveOne().onComplete {
+            case Success(actor: ActorRef) => actor ! pk
+            case Failure(_)               => system.actorOf(Props[Service], pk.encounterId) ! pk
+          }
         }
       }
     })
