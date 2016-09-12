@@ -1,5 +1,5 @@
-import Kafka.KafkaClient
-import Web.Server
+import services.Kafka.KafkaClient
+import web.Server
 
 
 object main extends App {

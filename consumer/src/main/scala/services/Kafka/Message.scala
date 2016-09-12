@@ -1,8 +1,8 @@
-package Kafka
+package services.Kafka
 
 import java.util.concurrent.TimeUnit
 
-import Pokemon.Pokemon
+import models.Pokemon
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.util.Timeout
 import kafka.consumer.KafkaStream
@@ -23,10 +23,10 @@ object Message {
           println(pk)
           implicit val timeout = Timeout(1, TimeUnit.SECONDS)
           // Fail to fetch actor
-          system.actorSelection("/user/" + pk.encounterId).resolveOne().onComplete {
-            case Success(actor: ActorRef) => actor ! pk
-            case Failure(_)               => system.actorOf(Props[Service], pk.encounterId) ! pk
-          }
+//          system.actorSelection("/user/" + pk.encounterId).resolveOne().onComplete {
+//            case Success(actor: ActorRef) => actor ! pk
+//            case Failure(_)               => system.actorOf(Props[Service], pk.encounterId) ! pk
+//          }
         }
       }
     })

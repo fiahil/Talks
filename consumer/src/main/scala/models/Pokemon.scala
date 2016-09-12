@@ -1,0 +1,51 @@
+package models
+
+import com.sksamuel.elastic4s.source.Indexable
+import com.sksamuel.elastic4s.{HitAs, RichSearchHit}
+import org.joda.time.DateTime
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
+
+
+case class Pokemon(id: Int, geo: LatLon, expireAt: DateTime)
+
+
+object Pokemon {
+
+  /**
+   * Serialize Pokemon to/from JSON
+   */
+  implicit val format = (
+                          (__ \ 'id).format[Int] and
+                          (__ \ 'geo).format[LatLon] and
+                          (__ \ 'expireAt).format[DateTime]
+                          )(Pokemon.apply, unlift(Pokemon.unapply))
+
+
+  /**
+   * Read a message and transform it into a Pokemon
+   */
+  def fromMessage(message: Array[Byte]): Option[Pokemon] = {
+    Json.parse(message).validate[Pokemon].asOpt
+  }
+
+  /**
+   * Serialize services.ES search hits to Pokemons
+   */
+  implicit object PokemonHitAs extends HitAs[Pokemon] {
+
+    override def as(hit: RichSearchHit): Pokemon = {
+      Json.parse(hit.sourceAsString).validate[Pokemon].asOpt.get
+    }
+  }
+
+  /**
+   * Serialize Pokemons to indexable documents (services.ES)
+   * using our json formatter defined above
+   */
+  implicit object PokemonJson extends Indexable[Pokemon] {
+
+    override def json(t: Pokemon): String = Json.stringify(Json.toJson(t))
+  }
+
+}

@@ -1,12 +1,11 @@
-package Kafka
+package services.Kafka
 
 import java.util.Properties
+import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
 import kafka.consumer.{Consumer, ConsumerConfig}
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 object KafkaClient {
 
@@ -22,15 +21,29 @@ object KafkaClient {
     new ConsumerConfig(properties)
   }
 
+  // Our actor system managing our actors
   val system = ActorSystem("es-sharpshooter")
 
+  // Dedicated Kafka Execution context
+  implicit val KafkaContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
+
   def start = {
+    // Starting our consumer
     val consumer = Consumer.create(config)
-    val streams = consumer.createMessageStreams(Map("pokemons" -> 1))
+
+    val topics = Map(
+      "pokemons" -> 1,
+      "spawnpoints" -> 1
+    )
+
+    val streams = consumer.createMessageStreams(topics)
 
     // Start the consumer asynchronously
     Future {
       streams.get("pokemons").get.foreach(Message.display(system))
-    }
+    } onFailure { case ec => println(ec) }
+    Future {
+      streams.get("spawnpoints").get.foreach(SpawnService.cycle(system))
+    } onFailure { case ec => println(ec) }
   }
 }

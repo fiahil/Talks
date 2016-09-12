@@ -1,7 +1,7 @@
-package Kafka
+package services.Kafka
 
-import ES.IndexInto
-import Pokemon.Pokemon
+import services.ES.IndexInto
+import models.Pokemon
 import akka.actor.Actor
 
 class Service extends Actor {

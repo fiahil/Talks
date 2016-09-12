@@ -1,4 +1,4 @@
-package ES
+package services.ES
 
 import java.util.concurrent.Executors
 
@@ -9,11 +9,12 @@ import scala.concurrent.ExecutionContext
 
 object ESClient {
 
-  val settings = Settings.settingsBuilder()
+  val config = Settings.settingsBuilder()
                  .put("cluster.name", "elasticsearch_fiahil")
                  .build()
 
-  implicit val ESExecutionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(5))
+  // Our execution context handling ES index and queries
+  implicit val ESContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(5))
 
-  val c = ElasticClient.transport(settings, "elasticsearch://localhost:9300")
+  val c = ElasticClient.transport(config, "elasticsearch://localhost:9300")
 }

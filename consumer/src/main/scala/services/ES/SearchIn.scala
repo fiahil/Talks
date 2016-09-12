@@ -1,11 +1,11 @@
-package ES
+package services.ES
 
-import Pokemon.Pokemon
+import models.Pokemon
 import com.sksamuel.elastic4s.ElasticDsl._
 import play.api.libs.json.Json
 import scala.concurrent.Future
 
-import ESClient.ESExecutionContext
+import ESClient.ESContext
 
 object SearchIn {
 
