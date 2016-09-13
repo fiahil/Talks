@@ -3,7 +3,7 @@ package services.Kafka
 import java.util.Properties
 import java.util.concurrent.Executors
 
-import akka.actor.ActorSystem
+import akka.actor.{Props, DeadLetter, ActorSystem}
 import kafka.consumer.{Consumer, ConsumerConfig}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -24,6 +24,9 @@ object KafkaClient {
   // Our actor system managing our actors
   val system = ActorSystem("es-sharpshooter")
 
+  // Taking care of dead letters
+  system.eventStream.subscribe(system.actorOf(Props[IndexService], "dead-letters"), classOf[DeadLetter])
+
   // Dedicated Kafka Execution context
   implicit val KafkaContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(20))
 
@@ -40,7 +43,7 @@ object KafkaClient {
 
     // Start the consumer asynchronously
     Future {
-      streams.get("pokemons").get.foreach(Message.display(system))
+      streams.get("pokemons").get.foreach(PokemonService.cycle(system))
     } onFailure { case ec => println(ec) }
     Future {
       streams.get("spawnpoints").get.foreach(SpawnService.cycle(system))

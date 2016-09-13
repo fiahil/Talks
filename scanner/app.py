@@ -37,7 +37,7 @@ class Spawnpoint(namedtuple('Spawnpoint', ['spawn_id', 'pokemon_ids', 'ttl', 'fr
         if i % self.frequency == 0:
             # Create a new pokemon around the spawnpoint
             log.info('spawning pokemons')
-            pos = get_random_point(ref, 0.0001)
+            pos = get_random_point(ref, 0.001)
             id = random.choice(list(self.pokemon_ids))
             p = Pokemon(id, pos)
             log.info('spawned {}'.format(p))
@@ -71,8 +71,8 @@ class Spawner:
             point = get_random_point()
             spawnpoint = Spawnpoint(
                 base64.b64encode(str(time.time())), # SpawnpointId
-                {random.randint(1, 150) for i in range(random.randint(1, 3))},
-                                          # Random pokemon ids
+                # {random.randint(1, 150) for i in range(random.randint(1, 3))},
+                {random.randint(1, 150)}, # Random pokemon ids
                 random.randint(30, 200),  # Random ttl
                 random.randint(10, 20)    # Random frequency
             )
@@ -81,7 +81,7 @@ class Spawner:
             self.spawnpoints[point] = spawnpoint
 
             # Generate a new seed
-            self.timer = random.randint(1, 100)
+            self.timer = random.randint(1, 50)
         self.timer -= 1
 
     def activated(self):
@@ -113,7 +113,7 @@ while True:
                     'lat': pokemon.pos[0],
                     'lon': pokemon.pos[1]
                 },
-                'expireAt': (datetime.now() + timedelta(minutes=5)).isoformat(),
+                'expireAt': (datetime.now() + timedelta(seconds=CYCLE_SPEED * s.frequency)).isoformat(),
             }
             kafka.send('pokemons', key=spawn_id, value=p)
     log.info('# timer until new spawnpoint: {}'.format(spawner.timer))

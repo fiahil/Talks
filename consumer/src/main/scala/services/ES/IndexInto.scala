@@ -10,7 +10,9 @@ object IndexInto {
   def pokemon(pokemon: Pokemon) = {
 
     ESClient.c.execute {
+
+      // index new pokemons into elasticsearch
       index into "pokemons" -> "pokemon" source pokemon
-    } onFailure { case ex => println(ex) }
+    } map { response => response.id }
   }
 }

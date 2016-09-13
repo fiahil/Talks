@@ -2,7 +2,7 @@ package models
 
 import com.sksamuel.elastic4s.source.Indexable
 import com.sksamuel.elastic4s.{HitAs, RichSearchHit}
-import org.joda.time.DateTime
+import com.github.nscala_time.time.Imports._
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
@@ -12,13 +12,17 @@ case class Pokemon(id: Int, geo: LatLon, expireAt: DateTime)
 
 object Pokemon {
 
+  implicit val dateRead = Reads.jodaDateReads("yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
+  implicit val dateWrite = Writes.DefaultJodaDateWrites
+  implicit val dateFormat = Format.apply(dateRead, dateWrite)
+
   /**
    * Serialize Pokemon to/from JSON
    */
   implicit val format = (
                           (__ \ 'id).format[Int] and
                           (__ \ 'geo).format[LatLon] and
-                          (__ \ 'expireAt).format[DateTime]
+                          (__ \ 'expireAt).format[DateTime](dateFormat)
                           )(Pokemon.apply, unlift(Pokemon.unapply))
 
 

@@ -75,7 +75,6 @@
     <orderEntry type="library" name="SBT: com.typesafe.play:play-functional_2.11:2.5.4:jar" level="project" />
     <orderEntry type="library" name="SBT: com.typesafe.play:play-iteratees_2.11:2.5.4:jar" level="project" />
     <orderEntry type="library" name="SBT: com.typesafe.play:play-json_2.11:2.5.4:jar" level="project" />
-    <orderEntry type="library" name="SBT: joda-time:joda-time:2.9.2:jar" level="project" />
     <orderEntry type="library" name="SBT: org.joda:joda-convert:1.8.1:jar" level="project" />
     <orderEntry type="library" name="SBT: org.scala-lang:scala-reflect:2.11.7:jar" level="project" />
     <orderEntry type="library" name="SBT: org.scala-stm:scala-stm_2.11:0.7:jar" level="project" />
@@ -91,5 +90,7 @@
     <orderEntry type="library" name="SBT: org.parboiled:parboiled-core:1.1.7:jar" level="project" />
     <orderEntry type="library" name="SBT: org.parboiled:parboiled-scala_2.11:1.1.7:jar" level="project" />
     <orderEntry type="library" name="SBT: org.scala-lang.modules:scala-xml_2.11:1.0.3:jar" level="project" />
+    <orderEntry type="library" name="SBT: com.github.nscala-time:nscala-time_2.11:2.14.0:jar" level="project" />
+    <orderEntry type="library" name="SBT: joda-time:joda-time:2.9.4:jar" level="project" />
   </component>
 </module>

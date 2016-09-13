@@ -11,11 +11,12 @@ object SearchIn {
 
   def pokemon: Future[String] = {
     ESClient.c.execute {
-      search in "pokemons" / "pokemon" query matchAllQuery limit 20
+
+      // Search for all pokemons on the map
+      search in "pokemons" / "pokemon" query matchAllQuery limit 200
     } map { sr =>
       Json.stringify {
         Json.toJson {
-          println(sr)
           sr.as[Pokemon]
           }
         }

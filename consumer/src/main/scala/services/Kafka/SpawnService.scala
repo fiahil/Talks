@@ -30,7 +30,7 @@ object SpawnService {
         // actor will self destruct upon processing it.
         def sendPoisonPill(id: String) = {
           // Timeout for actor queries
-          implicit val timeout = Timeout(1, TimeUnit.SECONDS)
+          implicit val timeout = Timeout(100, TimeUnit.MILLISECONDS)
 
           system.actorSelection("/user/" + id).resolveOne().onComplete {
             case Success(actor: ActorRef) => actor ! PoisonPill
@@ -41,10 +41,10 @@ object SpawnService {
         val key = new String(mm.key())
         val msg = new String(mm.message()).replace("\"", "")
 
-        println(s"key = $key ; msg = $msg")
+        println(s"[sps] key = $key ; msg = $msg")
 
         key match {
-          case "create" => system.actorOf(Props[Service], msg)
+          case "create" => system.actorOf(Props[IndexService], msg)
           case "delete" => sendPoisonPill(msg)
           case _        => println(s"Unknown operation: '$key'")
         }
