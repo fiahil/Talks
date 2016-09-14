@@ -35,13 +35,11 @@ class Pokemon(namedtuple('Pokemon', ['id', 'pos'])):
 class Spawnpoint(namedtuple('Spawnpoint', ['spawn_id', 'pokemon_ids', 'ttl', 'frequency'])):
     def cycle(self, ref, i):
         if i % self.frequency == 0:
-            # Create a new pokemon around the spawnpoint
+            # Create new pokemons around the spawnpoint
             log.info('spawning pokemons')
-            pos = get_random_point(ref, 0.001)
-            id = random.choice(list(self.pokemon_ids))
-            p = Pokemon(id, pos)
-            log.info('spawned {}'.format(p))
-            return (self.spawn_id, p)
+            ps = [Pokemon(id, get_random_point(ref, 0.01)) for id in self.pokemon_ids]
+            log.info('spawned {}'.format(ps))
+            return (self.spawn_id, ps)
         return (None, None)
 
 
@@ -71,10 +69,10 @@ class Spawner:
             point = get_random_point()
             spawnpoint = Spawnpoint(
                 base64.b64encode(str(time.time())), # SpawnpointId
-                # {random.randint(1, 150) for i in range(random.randint(1, 3))},
-                {random.randint(1, 150)}, # Random pokemon ids
-                random.randint(30, 200),  # Random ttl
-                random.randint(10, 20)    # Random frequency
+                {random.randint(1, 150) for i in range(random.randint(1, 3))},
+                # {random.randint(1, 150)}, # Random pokemon ids
+                random.randint(50, 200),  # Random ttl
+                random.randint(20, 40)    # Random frequency
             )
             log.info('New spawnpoint with {} @ {}'.format(spawnpoint, point))
             kafka.send('spawnpoints', key='create', value=spawnpoint.spawn_id)
@@ -105,17 +103,19 @@ while True:
     log.info('# activated spawners:')
     for p, s in spawner.activated():
         log.info('## {}'.format(s))
-        spawn_id, pokemon = s.cycle(p, i)
-        if spawn_id and pokemon:
-            p = {
-                'id': pokemon.id,
-                'geo': {
-                    'lat': pokemon.pos[0],
-                    'lon': pokemon.pos[1]
-                },
-                'expireAt': (datetime.now() + timedelta(seconds=CYCLE_SPEED * s.frequency)).isoformat(),
-            }
-            kafka.send('pokemons', key=spawn_id, value=p)
+        spawn_id, pokemons = s.cycle(p, i)
+        if spawn_id and pokemons:
+            for pokemon in pokemons:
+                p = {
+                    'id': pokemon.id,
+                    'geo': {
+                        'lat': pokemon.pos[0],
+                        'lon': pokemon.pos[1]
+                    },
+                    'expireAt': (datetime.now() +
+                                 timedelta(seconds=CYCLE_SPEED * s.frequency)).isoformat(),
+                }
+                kafka.send('pokemons', key=spawn_id, value=p)
     log.info('# timer until new spawnpoint: {}'.format(spawner.timer))
     kafka.flush()
     time.sleep(CYCLE_SPEED)
